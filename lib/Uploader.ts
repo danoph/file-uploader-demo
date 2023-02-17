@@ -150,7 +150,7 @@ export class Uploader {
         url: `/multipart_uploads/${this.uploadId}/completions`,
         method: "POST",
         data: {
-          key: this.fileKey,
+          fileKey: this.fileKey,
           parts: this.uploadedParts,
         },
       })
