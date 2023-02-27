@@ -226,7 +226,7 @@ export class Uploader {
 
         sendChunkStarted()
 
-        const progressListener = this.handleProgress.bind(this, part.partNumber - 1)
+        const progressListener = this.handleProgress.bind(this, part.PartNumber - 1)
 
         xhr.upload.addEventListener("progress", progressListener)
 
