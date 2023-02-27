@@ -178,7 +178,6 @@ export class Uploader {
 
   // calculating the current progress of the multipart upload request
   handleProgress(part, event) {
-    //console.log('part', part, 'event', event);
     if (this.file) {
       if (event.type === "progress" || event.type === "error" || event.type === "abort") {
         this.progressCache[part] = event.loaded
@@ -207,7 +206,7 @@ export class Uploader {
     }
   }
 
-  upload(file, part, sendChunkStarted) {
+  upload = (file, part, sendChunkStarted) => {
     return new Promise(async (resolve, reject) => {
       if (this.uploadId && this.fileKey) {
         // we need to get the multipart chunk url immediately before starting the upload
@@ -226,7 +225,7 @@ export class Uploader {
 
         sendChunkStarted()
 
-        const progressListener = this.handleProgress.bind(this, part.partNumber - 1)
+        const progressListener = this.handleProgress.bind(this, part.PartNumber - 1)
 
         xhr.upload.addEventListener("progress", progressListener)
 
