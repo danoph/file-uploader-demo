@@ -22,10 +22,9 @@ export default function Home() {
   const [inputValue, setInputValue] = useState("");
   const [upload, setUpload] = useState<Uploader | null>(null);
   const [progress, setProgress] = useState(0);
+  const [draggingOver, setDraggingOver] = useState(false);
 
-  const onFileChanged = e => {
-    const file = [ ...e.target.files ][0];
-
+  const addFile = file => {
     const uploader = new Uploader({ file })
     .onProgress(({ percentage }) => {
       setProgress(percentage);
@@ -40,31 +39,76 @@ export default function Home() {
     setUpload(uploader);
   };
 
+  const onFileChanged = e => {
+    const file = [ ...e.target.files ][0];
+    addFile(file);
+  };
+
   const uploadClicked = () => {
     if (!upload) { return }
 
     upload.start();
   };
 
+  const stopEvent = e => {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  const handleDragEnter = e => {
+    stopEvent(e);
+  };
+
+  const handleDragLeave = e => {
+    stopEvent(e);
+    setDraggingOver(false);
+  };
+
+  const handleDragOver = e => {
+    stopEvent(e);
+    setDraggingOver(true);
+  };
+
+  const handleDrop = e => {
+    stopEvent(e);
+    setDraggingOver(false);
+    const file = [ ...e.dataTransfer.files ][0];
+    addFile(file);
+  };
+
   return (
     <div className="mx-auto max-w-7xl sm:p-6 lg:p-8">
       <div className="flex text-sm text-gray-600">
-        <label
-          htmlFor="file-upload"
-          className="inline-flex items-center rounded border border-transparent bg-indigo-100 px-2.5 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-        >
-          <div className="text-md">
-            Choose File
+        <div className="w-full">
+          <div
+            className={`${draggingOver
+              ? "border-blue-500"
+              : "border-gray-300"
+            } mt-1 flex items-center justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-md`}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+          >
+            <label
+              htmlFor="file-upload"
+              className="inline-flex items-center rounded border border-transparent bg-indigo-100 px-2.5 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            >
+              <div className="text-md">
+                Choose File
+              </div>
+              <input
+                id="file-upload"
+                name="files"
+                type="file"
+                className="sr-only"
+                onChange={onFileChanged}
+                value={inputValue}
+              />
+            </label>
+            <p className="pl-1 text-sm">or drag and drop</p>
           </div>
-          <input
-            id="file-upload"
-            name="files"
-            type="file"
-            className="sr-only"
-            onChange={onFileChanged}
-            value={inputValue}
-          />
-        </label>
+        </div>
       </div>
 
       <p className="py-2 text-sm text-gray-500">
