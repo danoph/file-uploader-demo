@@ -18,36 +18,53 @@ const UploadProgressBar = ({ progress }) => (
   </div>
 );
 
+interface FileUpload {
+  uploader: Uploader;
+  progress: number;
+}
+
 export default function Home() {
   const [inputValue, setInputValue] = useState("");
-  const [upload, setUpload] = useState<Uploader | null>(null);
-  const [progress, setProgress] = useState(0);
+  const [uploads, setUploads] = useState<FileUpload[]>([]);
   const [draggingOver, setDraggingOver] = useState(false);
 
-  const addFile = file => {
-    const uploader = new Uploader({ file })
-    .onProgress(({ percentage }) => {
-      setProgress(percentage);
-    })
-    .onComplete((uploadResponse) => {
-      console.log('upload complete', uploadResponse);
-    })
-    .onError((error) => {
-      console.error('upload error', error)
-    });
-
-    setUpload(uploader);
+  const updateProgress = (filename, percentage) => {
+    setUploads(state =>
+      state.map(fileUpload =>
+        fileUpload.uploader.file.name === filename
+        ? { ...fileUpload, progress: percentage }
+        : fileUpload
+      )
+    );
   };
 
-  const onFileChanged = e => {
-    const file = [ ...e.target.files ][0];
-    addFile(file);
+  const addFiles = files => {
+    setUploads(
+      files.map(file => ({
+        uploader: new Uploader({ file })
+        .onProgress(({ percentage }) => {
+          updateProgress(file.name, percentage);
+        })
+        .onComplete((uploadResponse) => {
+          console.log('upload complete', uploadResponse);
+        })
+        .onError((error) => {
+          console.error('upload error', error)
+        }),
+        progress: 0
+      }))
+    );
+  };
+
+  const onFilesChanged = e => {
+    const files = [ ...e.target.files ];
+    addFiles(files);
   };
 
   const uploadClicked = () => {
-    if (!upload) { return }
+    if (!uploads.length) { return }
 
-    upload.start();
+    uploads.forEach(upload => upload.uploader.start());
   };
 
   const stopEvent = e => {
@@ -72,8 +89,8 @@ export default function Home() {
   const handleDrop = e => {
     stopEvent(e);
     setDraggingOver(false);
-    const file = [ ...e.dataTransfer.files ][0];
-    addFile(file);
+    const files = [ ...e.dataTransfer.files ];
+    addFiles(files);
   };
 
   return (
@@ -102,7 +119,8 @@ export default function Home() {
                 name="files"
                 type="file"
                 className="sr-only"
-                onChange={onFileChanged}
+                onChange={onFilesChanged}
+                multiple
                 value={inputValue}
               />
             </label>
@@ -115,23 +133,23 @@ export default function Home() {
         Any file up to 5TB
       </p>
 
-      {upload && (
-        <div className="py-2 flex flex-grow flex-col">
+      {uploads.map(({ uploader: { file }, progress }) => (
+        <div key={file.name} className="py-2 flex flex-grow flex-col">
           <span className="text-sm font-medium text-gray-900">
-            { upload.file.name }
+            { file.name }
           </span>
           <span className="text-sm text-gray-500">
-            { upload.file.type }
+            { file.type }
           </span>
           <span className="text-sm text-gray-500">
-            { prettyBytes(upload.file.size) }
+            { prettyBytes(file.size) }
           </span>
 
           <UploadProgressBar
             progress={progress}
           />
         </div>
-      )}
+      ))}
 
       <button
         type="button"
