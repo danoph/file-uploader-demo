@@ -3,6 +3,7 @@ import {
     CreateMultipartUploadCommand,
     UploadPartCommand,
     CompleteMultipartUploadCommand,
+    ListObjectsCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -18,6 +19,16 @@ const client = new S3Client({
     secretAccessKey: `${process.env.access_key_secret}`,
   }
 });
+
+export const listBucketFiles = async () => {
+  const response = await client.send(
+    new ListObjectsCommand({
+      Bucket: UPLOAD_BUCKET,
+    })
+  );
+
+  return response?.Contents || [];
+}
 
 export const createMultipartUpload = async ({ filename }) => {
   const { Key, UploadId } = await client.send(
