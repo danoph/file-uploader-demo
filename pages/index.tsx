@@ -121,6 +121,7 @@ export default function Home() {
                 className="sr-only"
                 onChange={onFilesChanged}
                 multiple
+                accept="image/*"
                 value={inputValue}
               />
             </label>
