@@ -4,6 +4,7 @@ import {
     UploadPartCommand,
     CompleteMultipartUploadCommand,
     ListObjectsCommand,
+    HeadObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -19,6 +20,17 @@ const client = new S3Client({
     secretAccessKey: `${process.env.access_key_secret}`,
   }
 });
+
+export const getS3ObjectMetadata = async ({ filename }) => {
+  const response = await client.send(
+    new HeadObjectCommand({
+      Bucket: UPLOAD_BUCKET,
+      Key: filename,
+    })
+  );
+
+  return response;
+}
 
 export const listBucketFiles = async () => {
   const response = await client.send(

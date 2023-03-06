@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { Uploader } from '@/lib/Uploader';
 import prettyBytes from 'pretty-bytes';
 import axios from "axios"
+import { UploadedImage } from '@/lib/models';
 
 const API_BASE_URL = "/api/";
 
@@ -66,7 +67,7 @@ export default function Home() {
   const [uploads, setUploads] = useState<FileUpload[]>([]);
   const [draggingOver, setDraggingOver] = useState(false);
 
-  const [images, setImages] = useState([]);
+  const [images, setImages] = useState<UploadedImage[]>([]);
 
   useEffect(() => {
     const fetchImages = async () => {
@@ -98,8 +99,8 @@ export default function Home() {
         .onProgress(({ percentage }) => {
           updateProgress(file.name, percentage);
         })
-        .onComplete((uploadResponse) => {
-          console.log('upload complete', uploadResponse);
+        .onComplete((newImage) => {
+          setImages(state => [ newImage, ...state ]);
         })
         .onError((error) => {
           console.error('upload error', error)

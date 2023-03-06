@@ -1,15 +1,22 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { finishMultipartUpload } from '@/lib/s3';
+import { getS3ObjectMetadata, finishMultipartUpload } from '@/lib/s3';
+import { UploadedImage } from '@/lib/models';
 
-export default async function handler(req, res) {
+export default async function handler(req, res: NextApiResponse<UploadedImage>) {
   const { uploadId } = req.query;
   const { fileKey, parts } = req.body;
 
-  const response = await finishMultipartUpload({
+  const finishResponse = await finishMultipartUpload({
     fileKey,
     uploadId,
     parts
   });
 
-  res.status(200).json({});
+  const objectMetadata = await getS3ObjectMetadata({ filename: fileKey });
+
+  res.status(200).json({
+    title: finishResponse.Key || "",
+    source: `https://d1m5oohnuppcs9.cloudfront.net/${finishResponse.Key}`,
+    size: objectMetadata.ContentLength || 0,
+  });
 }
